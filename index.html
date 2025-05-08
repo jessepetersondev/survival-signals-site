@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survival Signals Bot</title>
+  <style>
+    /* Base styling */
+    body {
+      margin: 0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #f0f4f1;
+      color: #333;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Hero section */
+    header {
+      background: url('survival-bg.jpg') no-repeat center center/cover;
+      color: #fff;
+      text-align: center;
+      padding: 120px 20px;
+    }
+    header img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 20px;
+      border: 4px solid rgba(255, 255, 255, 0.8);
+      background: #fff;
+    }
+    header h1 {
+      font-size: 3rem;
+      margin: 0;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+    }
+    header p {
+      font-size: 1.2rem;
+      margin: 20px 0;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+    }
+    .btn {
+      display: inline-block;
+      background: #8bc34a;
+      color: #fff;
+      padding: 15px 30px;
+      text-decoration: none;
+      font-size: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #7cb342;
+    }
+
+    /* Sections */
+    section {
+      padding: 60px 0;
+    }
+    h2 {
+      text-align: center;
+      color: #4caf50;
+      margin-bottom: 40px;
+      font-size: 2rem;
+    }
+
+    /* Features grid */
+    .features .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .feature {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    .feature h3 {
+      margin-top: 0;
+      color: #388e3c;
+    }
+
+    /* Backtest table */
+    .testimonials table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .testimonials table th,
+    .testimonials table td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+    .testimonials table th {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #2e2e2e;
+      color: #bbb;
+    }
+  </style>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
+    document.querySelector('.btn').addEventListener('click', async () => {
+      const telegramId = prompt('Enter your Telegram user ID');
+      const res = await fetch('/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_user_id: telegramId })
+      });
+      const { sessionId } = await res.json();
+      await stripe.redirectToCheckout({ sessionId });
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <img src="survival-icon.png" alt="Survival Icon">
+      <h1>Survival Signals Bot</h1>
+      <p>Harness the wild markets to secure your survival</p>
+      <a href="https://buy.stripe.com/your_checkout_link" class="btn">Subscribe & Survive</a>
+    </div>
+  </header>
+
+  <section class="features">
+    <div class="container">
+      <h2>Why Survival Signals?</h2>
+      <div class="grid">
+        <div class="feature">
+          <h3>Instant Alerts</h3>
+          <p>Get real-time buy/sell signals pushed to Telegram—no delays.</p>
+        </div>
+        <div class="feature">
+          <h3>Battle-Tested Strategy</h3>
+          <p>Proven performance across BTC, ETH, and SOL to keep you ahead.</p>
+        </div>
+        <div class="feature">
+          <h3>Affordable Tiers</h3>
+          <p>Survival shouldn't cost a fortune—plans start at just $20/month.</p>
+        </div>
+        <div class="feature">
+          <h3>24/7 Market Watch</h3>
+          <p>Continuous scanning for every opportunity—day or night.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <div class="container">
+      <h2>Sample Backtest Results</h2>
+      <table>
+        <thead>
+          <tr><th>Pair</th><th>ROI (%)</th><th>Sharpe Ratio</th><th>Max Drawdown (%)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>BTC/USDT</td><td>15.2</td><td>1.45</td><td>4.1</td></tr>
+          <tr><td>ETH/USDT</td><td>12.7</td><td>1.30</td><td>3.8</td></tr>
+          <tr><td>SOL/USDT</td><td>18.5</td><td>1.60</td><td>5.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Survival Signals Bot. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
