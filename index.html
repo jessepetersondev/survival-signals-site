@@ -114,16 +114,31 @@
   </style>
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
-    document.querySelector('.btn').addEventListener('click', async () => {
-      const telegramId = prompt('Enter your Telegram user ID');
-      const res = await fetch('/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_user_id: telegramId })
+    document.addEventListener('DOMContentLoaded', () => {
+      const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa'); // Your Stripe Publishable Key
+      const subscribeBtn = document.getElementById('subscribeBtn');
+      subscribeBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const telegramId = prompt('Enter your NUMBER Telegram user ID (not username)');
+        if (!telegramId) {
+          alert('Telegram ID is required');
+          return;
+        }
+        try {
+          const res = await fetch('https://api.survivalsignals.trade/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telegram_user_id: telegramId })
+          });
+          if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+          const data = await res.json();
+          if (!data.sessionId) throw new Error('No session ID returned');
+          await stripe.redirectToCheckout({ sessionId: data.sessionId });
+        } catch (err) {
+          console.error('Error:', err);
+          alert('Checkout initiation failed. See console for details.');
+        }
       });
-      const { sessionId } = await res.json();
-      await stripe.redirectToCheckout({ sessionId });
     });
   </script>
 </head>
@@ -133,7 +148,7 @@
       <img src="survival-icon.png" alt="Survival Icon">
       <h1>Survival Signals Bot</h1>
       <p>Harness the wild markets to secure your survival</p>
-      <a href="https://buy.stripe.com/your_checkout_link" class="btn">Subscribe & Survive</a>
+      <a href="#" id="subscribeBtn" class="btn">Subscribe & Survive</a>
     </div>
   </header>
 
