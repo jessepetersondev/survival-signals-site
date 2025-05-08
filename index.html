@@ -119,7 +119,7 @@
       document.getElementById('subscribeBtn').addEventListener('click', async (e) => {
         e.preventDefault();      // prevent the default anchor navigation
         const telegramId = prompt('Enter your Telegram user ID');
-        const res = await fetch('/create-checkout-session', {
+        await fetch('https://api.survivalsignals.trade/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ telegram_user_id: telegramId })
