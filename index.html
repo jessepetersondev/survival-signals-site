@@ -114,16 +114,19 @@
   </style>
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
-    document.querySelector('.btn').addEventListener('click', async () => {
-      const telegramId = prompt('Enter your Telegram user ID');
-      const res = await fetch('/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_user_id: telegramId })
+    document.addEventListener('DOMContentLoaded', () => {
+      const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
+      document.getElementById('subscribeBtn').addEventListener('click', async (e) => {
+        e.preventDefault();      // prevent the default anchor navigation
+        const telegramId = prompt('Enter your Telegram user ID');
+        const res = await fetch('/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ telegram_user_id: telegramId })
+        });
+        const { sessionId } = await res.json();
+        await stripe.redirectToCheckout({ sessionId });
       });
-      const { sessionId } = await res.json();
-      await stripe.redirectToCheckout({ sessionId });
     });
   </script>
 </head>
@@ -133,7 +136,7 @@
       <img src="survival-icon.png" alt="Survival Icon">
       <h1>Survival Signals Bot</h1>
       <p>Harness the wild markets to secure your survival</p>
-      <a href="https://buy.stripe.com/your_checkout_link" class="btn">Subscribe & Survive</a>
+      <a href="#" id="subscribeBtn" class="btn">Subscribe & Survive</a>
     </div>
   </header>
 
