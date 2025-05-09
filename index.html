@@ -39,7 +39,7 @@
       document.querySelector('.form-wrapper').style.display = 'block';
     }
     document.addEventListener('DOMContentLoaded', () => {
-      const stripe = Stripe('pk_test_XXXXXXXXXXXXXXXXXXXXXXXX');
+      const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
       document.getElementById('subscribeBtn').addEventListener('click', async () => {
         const id = document.getElementById('telegramId').value.trim();
         if (!id) { alert('Authorize via Telegram or enter your numeric ID.'); return; }
