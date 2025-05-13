@@ -41,16 +41,26 @@
       const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
       document.getElementById('subscribeBtn').addEventListener('click', async () => {
         const telegramId = document.getElementById('telegramId').value.trim();
-        if (!telegramId) { alert('Please enter your numeric Telegram User ID.'); return; }
+        if (!telegramId) {
+          alert('Please enter your numeric Telegram User ID.');
+          return;
+        }
         try {
-          const res = await fetch('https://api.survivalsignals.trade/create-checkout-session', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telegram_user_id: telegramId }) });
-          if (!res.ok) throw new Error(`Status ${res.status}`);
+          const res = await fetch('https://api.survivalsignals.trade/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telegram_user_id: telegramId })
+          });
+          if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
           const { sessionId } = await res.json();
           await stripe.redirectToCheckout({ sessionId });
-        } catch(e) { console.error(e); alert('Checkout initiation failed.'); }
+        } catch (e) {
+          console.error('Error:', e);
+          alert('Checkout initiation failed. See console for details.');
+        }
       });
-      document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('modalBackdrop').style.display='flex');
-      document.getElementById('modalClose').addEventListener('click', () => document.getElementById('modalBackdrop').style.display='none');
+      document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('modalBackdrop').style.display = 'flex');
+      document.getElementById('modalClose').addEventListener('click', () => document.getElementById('modalBackdrop').style.display = 'none');
     });
   </script>
 </head>
@@ -61,22 +71,10 @@
       <h1>Survival Signals Bot</h1>
       <p>Enter your Telegram User ID to subscribe or click below for help:</p>
       <button id="infoBtn" class="btn">How to find TG ID</button>
-      <!-- Telegram Login Widget commented out -->
-      <!--
-      <div id="telegram-login" class="telegram-widget">
-        <script async src="https://telegram.org/js/telegram-widget.js?15"
-          data-telegram-login="SurvivalSignalsBot"
-          data-size="large"
-          data-radius="10"
-          data-request-access="write"
-          data-auth-url="https://survivalsignals.trade/"
-        ></script>
-      </div>
-      -->
       <div class="form-wrapper">
         <label for="telegramId">Telegram User ID</label>
         <input type="text" id="telegramId" placeholder="e.g. 123456789" />
-        <button id="subscribeBtn" class="btn">Subscribe & Survive</button>
+        <button id="subscribeBtn" class="btn">Subscribe &amp; Survive</button>
       </div>
     </div>
   </header>
