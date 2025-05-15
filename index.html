@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Survival Signals Bot</title>
 
   <!-- Stripe.js -->
@@ -13,101 +13,280 @@
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
   <style>
-    /* Base styling */
-    body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: #0d0d0d; color: #fff; overflow-x: hidden; }
-    a, button { font-family: inherit; }
+    /* Desperate survival theme */
+    body {
+      margin: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background: #1a0a0a;
+      color: #f2f2f2;
+      overflow-x: hidden;
+    }
+    a, button {
+      font-family: inherit;
+    }
 
-    /* Particle background */
-    #particles-js { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 0; }
+    /* Full-screen dystopian background */
+    header {
+      position: relative;
+      background: url('dystopian-bg.png') no-repeat center/cover;
+      height: 100vh;
+      text-align: center;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 0;
+    }
+    header img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid #4caf50;
+      background: #000;
+      z-index: 1;
+    }
+    header h1 {
+      font-size: 3.5rem;
+      margin: 20px 0 10px;
+      color: #e53935;
+      text-shadow: 0 0 10px #e53935, 0 0 20px #000;
+      z-index: 1;
+      animation: flicker 1.5s infinite alternate;
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    header p {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      color: #ccc;
+      text-shadow: 0 0 5px #000;
+      z-index: 1;
+    }
 
-    /* Live ticker */
-    .ticker { position: relative; background: #111; color: #4caf50; font-size: 0.9rem; padding: 5px 0; white-space: nowrap; overflow: hidden; z-index:1; }
-    .ticker span { display: inline-block; padding: 0 50px; animation: scroll 20s linear infinite; }
-    @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    /* Live price ticker */
+    .ticker {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: #111;
+      padding: 5px 0;
+      color: #4caf50;
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      z-index: 2;
+    }
+    .ticker span {
+      display: inline-block;
+      padding: 0 2rem;
+      animation: scroll 20s linear infinite;
+    }
+    @keyframes scroll {
+      from { transform: translateX(100%); }
+      to { transform: translateX(-100%); }
+    }
 
-    /* Hero */
-    header { position: relative; text-align: center; padding: 120px 20px; z-index:1; }
-    header img { width:100px; height:100px; object-fit:cover; border-radius:50%; margin-bottom:20px; border:4px solid rgba(255,255,255,0.8); background:#fff; }
-    header h1 { font-size:3rem; margin:0; text-shadow:2px 2px 6px rgba(0,0,0,0.7); }
-    header p { font-size:1.2rem; margin:20px 0; text-shadow:1px 1px 4px rgba(0,0,0,0.5); }
-    .btn { background:#8bc34a; color:#000; padding:15px 30px; border:none; border-radius:5px; font-size:1rem; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.2); transition:background .3s; text-decoration:none; display:inline-block; }
-    .btn:hover { background:#7cb342; }
+    /* Buttons */
+    .btn {
+      background: #e53935;
+      color: #fff;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px #e53935;
+      transition: background 0.3s, box-shadow 0.3s;
+      z-index: 1;
+    }
+    .btn:hover {
+      background: #d32f2f;
+      box-shadow: 0 0 20px #e53935;
+    }
 
-    /* Animated counters */
-    .counters { display: flex; justify-content:center; gap:40px; margin-top:40px; }
-    .counter { text-align:center; }
-    .counter .number { font-size:2.5rem; color:#4caf50; }
-    .counter .label { font-size:1rem; color:#ccc; }
+    /* Form */
+    .form-wrapper {
+      background: rgba(0,0,0,0.6);
+      padding: 20px;
+      border-radius: 6px;
+      margin-top: 20px;
+      z-index: 1;
+      width: 90%;
+      max-width: 360px;
+    }
+    .form-wrapper label {
+      display: block;
+      color: #e53935;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-wrapper input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #222;
+      color: #fff;
+      margin-bottom: 15px;
+    }
 
-    /* Form & modal */
-    .form-wrapper { margin:20px auto 30px; max-width:400px; background:#222; padding:25px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5); z-index:1; }
-    .form-wrapper label { display:block; font-weight:bold; margin-bottom:8px; color:#fff; }
-    .form-wrapper input { width:100%; padding:12px; margin-bottom:15px; border:1px solid #555; border-radius:4px; background:#111; color:#fff; }
-    .modal-backdrop { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; }
-    .modal { background:#fff; padding:20px; border-radius:8px; max-width:500px; width:90%; position:relative; color:#333; }
-    .modal-close { position:absolute; top:10px; right:10px; background:none; border:none; font-size:1.5rem; cursor:pointer; }
-    .modal img { max-width:100%; margin-bottom:15px; border-radius:4px; }
+    /* Animated Counters */
+    .counters {
+      display: flex;
+      gap: 3rem;
+      margin-top: 40px;
+      z-index: 1;
+    }
+    .counter {
+      text-align: center;
+    }
+    .counter .number {
+      font-size: 2.5rem;
+      color: #4caf50;
+      text-shadow: 0 0 8px #4caf50;
+    }
+    .counter .label {
+      font-size: 1rem;
+      color: #ccc;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: #fff;
+      color: #333;
+      padding: 20px;
+      border-radius: 6px;
+      width: 90%;
+      max-width: 480px;
+      text-align: left;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
 
     /* Sections */
-    section { padding:60px 0; position:relative; z-index:1; }
-    h2 { text-align:center; color:#4caf50; margin-bottom:40px; font-size:2rem; }
-    .features .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:20px; }
-    .feature { background:#222; border-radius:8px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.5); }
-    .feature h3 { margin-top:0; color:#8bc34a; }
-    .testimonials table { width:100%; border-collapse:collapse; margin-top:20px; }
-    .testimonials th, .testimonials td { border:1px solid #444; padding:12px; text-align:left; }
-    .testimonials th { background:#4caf50; color:#000; }
-    footer { text-align:center; padding:20px; background:#111; color:#777; position:relative; z-index:1; }
+    section {
+      padding: 80px 20px;
+      background: #121212;
+      color: #ddd;
+      z-index:1;
+      position: relative;
+    }
+    section h2 {
+      color: #e53935;
+      text-shadow: 0 0 5px #000;
+    }
+    .features .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+      gap: 20px;
+    }
+    .feature {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.7);
+    }
+    .feature h3 { color: #4caf50; }
+
+    .testimonials table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .testimonials th, .testimonials td {
+      border: 1px solid #333;
+      padding: 12px;
+    }
+    .testimonials th { background: #4caf50; color: #000; }
+
+    footer {
+      background: #111;
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      z-index:1;
+      position: relative;
+    }
   </style>
 </head>
 <body>
-
-  <!-- Particle background -->
-  <div id="particles-js"></div>
-
-  <!-- Live price ticker -->
-  <div class="ticker"><span id="price-ticker">Loading live prices…</span></div>
-
   <header>
-    <img src="survival-icon.png" alt="Survival Icon">
+    <img src="survival-icon.png" alt="Survival Icon" />
     <h1>Survival Signals Bot</h1>
-    <p>Enter your Telegram User ID to subscribe or click below for help:</p>
-    <button id="infoBtn" class="btn">How to find TG ID</button>
+    <p>Only the strongest traders survive. Enter your Telegram ID to join!</p>
     <div class="form-wrapper">
       <label for="telegramId">Telegram User ID</label>
       <input type="text" id="telegramId" placeholder="e.g. 123456789" />
-      <button id="subscribeBtn" class="btn">Subscribe &amp; Survive</button>
+      <button id="subscribeBtn" class="btn">Subscribe & Survive</button>
     </div>
-    <!-- Animated counters -->
+    <button id="infoBtn" class="btn" style="margin-top:10px;">How to find TG ID</button>
+
     <div class="counters">
-      <div class="counter"><div id="count1" class="number">0</div><div class="label">Signals Delivered</div></div>
-      <div class="counter"><div id="count2" class="number">0</div><div class="label">Active Subscribers</div></div>
-      <div class="counter"><div id="count3" class="number">0</div><div class="label">24/7 Coverage</div></div>
+      <div class="counter">
+        <div id="count1" class="number">0</div>
+        <div class="label">Signals Delivered</div>
+      </div>
+      <div class="counter">
+        <div id="count2" class="number">0</div>
+        <div class="label">Active Survivors</div>
+      </div>
+      <div class="counter">
+        <div id="count3" class="number">0</div>
+        <div class="label">Nightly Scans</div>
+      </div>
     </div>
   </header>
 
-  <!-- Modal dialog -->
+  <div class="ticker">
+    <span id="price-ticker">Loading live prices…</span>
+  </div>
+
   <div id="modalBackdrop" class="modal-backdrop">
     <div class="modal">
       <button id="modalClose" class="modal-close">&times;</button>
       <h2>How to Find Your Telegram User ID</h2>
-      <p>Use <code>@RawDataBot</code> in Telegram:</p>
-      <img src="tg-step1.png" alt="Open @RawDataBot and type /getid">
-      <p>1. Open Telegram and start a chat with <code>@RawDataBot</code>.</p>
-      <img src="tg-step2.png" alt="Receive your numeric ID from bot">
-      <p>2. Send <code>/getid</code> and copy the numeric ID it returns.</p>
-      <p>3. Paste that number into the form and click Subscribe.</p>
+      <p>In Telegram, search and message <code>@RawDataBot</code>:</p>
+      <p>1. Open a chat with <code>@RawDataBot</code>.</p>
+      <p>2. Send <code>/getid</code> and copy the numeric ID it replies with.</p>
+      <p>3. Paste it above and click "Subscribe & Survive".</p>
     </div>
   </div>
 
   <section class="features">
     <div class="container">
-      <h2>Why Survival Signals?</h2>
+      <h2>Why You'll Need Survival Signals</h2>
       <div class="grid">
-        <div class="feature"><h3>Instant Alerts</h3><p>Real-time buy/sell signals pushed to your Telegram.</p></div>
-        <div class="feature"><h3>Battle-Tested Strategy</h3><p>Proven across BTC, ETH, and SOL.</p></div>
-        <div class="feature"><h3>Affordable</h3><p>Unlimited access for $20/month.</p></div>
-        <div class="feature"><h3>24/7 Monitoring</h3><p>Never miss an opportunity.</p></div>
+        <div class="feature"><h3>Immediate Alerts</h3><p>In a world collapsing, every second counts—act fast or perish.</p></div>
+        <div class="feature"><h3>Battle-Tested Strategy</h3><p>Survive volatile markets with tried-and-true algorithms.</p></div>
+        <div class="feature"><h3>Lifeline Pricing</h3><p>Essential protection at just $14/month—your survival costs less than a tank of gas.</p></div>
+        <div class="feature"><h3>24/7 Watch</h3><p>We never sleep so you don’t have to worry when night falls.</p></div>
       </div>
     </div>
   </section>
@@ -130,36 +309,32 @@
 
   <footer>
     <div class="container">
-      <p>&copy; 2025 Survival Signals Bot.</p>
+      <p>&copy; 2025 Survival Signals Bot. Plan accordingly—or face extinction.</p>
     </div>
   </footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Stripe checkout
+      // Stripe
       const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
       document.getElementById('subscribeBtn').addEventListener('click', async () => {
         const telegramId = document.getElementById('telegramId').value.trim();
-        if (!telegramId) {
-          alert('Please enter your numeric Telegram User ID.');
-          return;
-        }
+        if (!telegramId) { alert('Enter your Telegram ID or face doom!'); return; }
         try {
           const res = await fetch('https://api.survivalsignals.trade/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({ telegram_user_id: telegramId })
           });
           if (!res.ok) throw new Error(`Status ${res.status}`);
           const { sessionId } = await res.json();
           await stripe.redirectToCheckout({ sessionId });
-        } catch (e) {
-          console.error('Error:', e);
-          alert('Checkout initiation failed.');
+        } catch(e) {
+          console.error(e);
+          alert('Checkout failed—your survival is at stake.');
         }
       });
 
-      // Modal controls
+      // Modal
       document.getElementById('infoBtn').addEventListener('click', () => {
         document.getElementById('modalBackdrop').style.display = 'flex';
       });
@@ -167,22 +342,21 @@
         document.getElementById('modalBackdrop').style.display = 'none';
       });
 
-      // CountUp animations
-      new CountUp.CountUp('count1', 1284, { duration: 2 }).start();
-      new CountUp.CountUp('count2', 532, { duration: 2 }).start();
-      new CountUp.CountUp('count3', 24, { duration: 2 }).start();
+      // Counters
+      new CountUp.CountUp('count1', 1284).start();
+      new CountUp.CountUp('count2', 532).start();
+      new CountUp.CountUp('count3', 24).start();
 
-      // Particles.js
-      particlesJS.load('particles-js', 'particles.json', () => {
-        console.log('Particles loaded');
-      });
+      // Particles
+      particlesJS.load('particles-js', 'particles.json', () => {});
 
-      // Live price ticker
+      // Live ticker
       const ticker = document.getElementById('price-ticker');
-      const socket = new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin,ethereum,solana');
-      socket.onmessage = e => {
-        const data = JSON.parse(e.data);
-        ticker.textContent = `BTC: $${(+data.bitcoin).toFixed(2)} • ETH: $${(+data.ethereum).toFixed(2)} • SOL: $${(+data.solana).toFixed(2)}`;
+      const ws = new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin,ethereum,solana');
+      ws.onmessage = e => {
+        const d = JSON.parse(e.data);
+        ticker.textContent = 
+          `BTC: $${(+d.bitcoin).toFixed(2)} • ETH: $${(+d.ethereum).toFixed(2)} • SOL: $${(+d.solana).toFixed(2)}`;
       };
     });
   </script>
