@@ -4,40 +4,139 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Survival Signals Bot</title>
+
+  <!-- Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <!-- CountUp.js -->
+  <script src="https://cdn.jsdelivr.net/npm/countup.js@2.0.7/dist/countUp.umd.js"></script>
+  <!-- Particles.js -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
   <style>
     /* Base styling */
-    body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f1; color: #333; }
-    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+    body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: #0d0d0d; color: #fff; overflow-x: hidden; }
+    a, button { font-family: inherit; }
+
+    /* Particle background */
+    #particles-js { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 0; }
+
+    /* Live ticker */
+    .ticker { position: relative; background: #111; color: #4caf50; font-size: 0.9rem; padding: 5px 0; white-space: nowrap; overflow: hidden; z-index:1; }
+    .ticker span { display: inline-block; padding: 0 50px; animation: scroll 20s linear infinite; }
+    @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
     /* Hero */
-    header { background: url('survival-bg.jpg') no-repeat center/cover; color: #fff; text-align: center; padding: 100px 20px; position: relative; }
-    header img { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; margin-bottom: 15px; border: 3px solid rgba(255,255,255,0.8); background: #fff; }
-    header h1 { font-size: 2.5rem; margin: 0; text-shadow: 2px 2px 6px rgba(0,0,0,0.7); }
-    header p { font-size: 1.1rem; margin: 10px 0 20px; text-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
-    .btn { display: inline-block; background: #8bc34a; color: #fff; padding: 12px 25px; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: background 0.3s; }
-    .btn:hover { background: #7cb342; }
-    .form-wrapper { margin: 20px auto 30px; max-width: 400px; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .form-wrapper label { display: block; font-weight: bold; margin-bottom: 8px; color: #333; }
-    .form-wrapper input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-    .modal-backdrop { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000; }
-    .modal { background: #fff; padding:20px; border-radius:8px; max-width:500px; width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3); position:relative; }
+    header { position: relative; text-align: center; padding: 120px 20px; z-index:1; }
+    header img { width:100px; height:100px; object-fit:cover; border-radius:50%; margin-bottom:20px; border:4px solid rgba(255,255,255,0.8); background:#fff; }
+    header h1 { font-size:3rem; margin:0; text-shadow:2px 2px 6px rgba(0,0,0,0.7); }
+    header p { font-size:1.2rem; margin:20px 0; text-shadow:1px 1px 4px rgba(0,0,0,0.5); }
+    .btn { background:#8bc34a; color:#000; padding:15px 30px; border:none; border-radius:5px; font-size:1rem; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.2); transition:background .3s; text-decoration:none; display:inline-block; }
+    .btn:hover { background:#7cb342; }
+
+    /* Animated counters */
+    .counters { display: flex; justify-content:center; gap:40px; margin-top:40px; }
+    .counter { text-align:center; }
+    .counter .number { font-size:2.5rem; color:#4caf50; }
+    .counter .label { font-size:1rem; color:#ccc; }
+
+    /* Form & modal */
+    .form-wrapper { margin:20px auto 30px; max-width:400px; background:#222; padding:25px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5); z-index:1; }
+    .form-wrapper label { display:block; font-weight:bold; margin-bottom:8px; color:#fff; }
+    .form-wrapper input { width:100%; padding:12px; margin-bottom:15px; border:1px solid #555; border-radius:4px; background:#111; color:#fff; }
+    .modal-backdrop { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; }
+    .modal { background:#fff; padding:20px; border-radius:8px; max-width:500px; width:90%; position:relative; color:#333; }
     .modal-close { position:absolute; top:10px; right:10px; background:none; border:none; font-size:1.5rem; cursor:pointer; }
     .modal img { max-width:100%; margin-bottom:15px; border-radius:4px; }
-    .modal h2 { margin-top:0; color:#4caf50; }
-    .modal p { margin:10px 0; color:#333; font-size:0.95rem; }
+
     /* Sections */
-    section { padding: 60px 0; }
-    h2 { text-align: center; color: #4caf50; margin-bottom: 40px; font-size: 2rem; }
-    .features .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 20px; }
-    .feature { background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 20px; }
-    .feature h3 { margin-top: 0; color: #388e3c; }
-    .testimonials table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    .testimonials table th, .testimonials table td { border: 1px solid #ccc; padding: 12px; text-align: left; }
-    .testimonials table th { background: #4caf50; color: #fff; }
-    footer { text-align: center; padding: 20px; background: #2e2e2e; color: #bbb; }
+    section { padding:60px 0; position:relative; z-index:1; }
+    h2 { text-align:center; color:#4caf50; margin-bottom:40px; font-size:2rem; }
+    .features .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:20px; }
+    .feature { background:#222; border-radius:8px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.5); }
+    .feature h3 { margin-top:0; color:#8bc34a; }
+    .testimonials table { width:100%; border-collapse:collapse; margin-top:20px; }
+    .testimonials th, .testimonials td { border:1px solid #444; padding:12px; text-align:left; }
+    .testimonials th { background:#4caf50; color:#000; }
+    footer { text-align:center; padding:20px; background:#111; color:#777; position:relative; z-index:1; }
   </style>
-  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+
+  <!-- Particle background -->
+  <div id="particles-js"></div>
+
+  <!-- Live price ticker -->
+  <div class="ticker"><span id="price-ticker">Loading live prices…</span></div>
+
+  <header>
+    <img src="survival-icon.png" alt="Survival Icon">
+    <h1>Survival Signals Bot</h1>
+    <p>Enter your Telegram User ID to subscribe or click below for help:</p>
+    <button id="infoBtn" class="btn">How to find TG ID</button>
+    <div class="form-wrapper">
+      <label for="telegramId">Telegram User ID</label>
+      <input type="text" id="telegramId" placeholder="e.g. 123456789" />
+      <button id="subscribeBtn" class="btn">Subscribe &amp; Survive</button>
+    </div>
+    <!-- Animated counters -->
+    <div class="counters">
+      <div class="counter"><div id="count1" class="number">0</div><div class="label">Signals Delivered</div></div>
+      <div class="counter"><div id="count2" class="number">0</div><div class="label">Active Subscribers</div></div>
+      <div class="counter"><div id="count3" class="number">0</div><div class="label">24/7 Coverage</div></div>
+    </div>
+  </header>
+
+  <!-- Modal dialog -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <button id="modalClose" class="modal-close">&times;</button>
+      <h2>How to Find Your Telegram User ID</h2>
+      <p>Use <code>@RawDataBot</code> in Telegram:</p>
+      <img src="tg-step1.png" alt="Open @RawDataBot and type /getid">
+      <p>1. Open Telegram and start a chat with <code>@RawDataBot</code>.</p>
+      <img src="tg-step2.png" alt="Receive your numeric ID from bot">
+      <p>2. Send <code>/getid</code> and copy the numeric ID it returns.</p>
+      <p>3. Paste that number into the form and click Subscribe.</p>
+    </div>
+  </div>
+
+  <section class="features">
+    <div class="container">
+      <h2>Why Survival Signals?</h2>
+      <div class="grid">
+        <div class="feature"><h3>Instant Alerts</h3><p>Real-time buy/sell signals pushed to your Telegram.</p></div>
+        <div class="feature"><h3>Battle-Tested Strategy</h3><p>Proven across BTC, ETH, and SOL.</p></div>
+        <div class="feature"><h3>Affordable</h3><p>Unlimited access for $20/month.</p></div>
+        <div class="feature"><h3>24/7 Monitoring</h3><p>Never miss an opportunity.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <div class="container">
+      <h2>Sample Backtest Results</h2>
+      <table>
+        <thead>
+          <tr><th>Pair</th><th>ROI (%)</th><th>Sharpe</th><th>Drawdown</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>BTC/USDT</td><td>15.2</td><td>1.45</td><td>4.1</td></tr>
+          <tr><td>ETH/USDT</td><td>12.7</td><td>1.30</td><td>3.8</td></tr>
+          <tr><td>SOL/USDT</td><td>18.5</td><td>1.60</td><td>5.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Survival Signals Bot.</p>
+    </div>
+  </footer>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Stripe checkout
       const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
       document.getElementById('subscribeBtn').addEventListener('click', async () => {
         const telegramId = document.getElementById('telegramId').value.trim();
@@ -51,73 +150,41 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ telegram_user_id: telegramId })
           });
-          if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+          if (!res.ok) throw new Error(`Status ${res.status}`);
           const { sessionId } = await res.json();
           await stripe.redirectToCheckout({ sessionId });
         } catch (e) {
           console.error('Error:', e);
-          alert('Checkout initiation failed. See console for details.');
+          alert('Checkout initiation failed.');
         }
       });
-      document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('modalBackdrop').style.display = 'flex');
-      document.getElementById('modalClose').addEventListener('click', () => document.getElementById('modalBackdrop').style.display = 'none');
+
+      // Modal controls
+      document.getElementById('infoBtn').addEventListener('click', () => {
+        document.getElementById('modalBackdrop').style.display = 'flex';
+      });
+      document.getElementById('modalClose').addEventListener('click', () => {
+        document.getElementById('modalBackdrop').style.display = 'none';
+      });
+
+      // CountUp animations
+      new CountUp.CountUp('count1', 1284, { duration: 2 }).start();
+      new CountUp.CountUp('count2', 532, { duration: 2 }).start();
+      new CountUp.CountUp('count3', 24, { duration: 2 }).start();
+
+      // Particles.js
+      particlesJS.load('particles-js', 'particles.json', () => {
+        console.log('Particles loaded');
+      });
+
+      // Live price ticker
+      const ticker = document.getElementById('price-ticker');
+      const socket = new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin,ethereum,solana');
+      socket.onmessage = e => {
+        const data = JSON.parse(e.data);
+        ticker.textContent = `BTC: $${(+data.bitcoin).toFixed(2)} • ETH: $${(+data.ethereum).toFixed(2)} • SOL: $${(+data.solana).toFixed(2)}`;
+      };
     });
   </script>
-</head>
-<body>
-  <header>
-    <div class="container">
-      <img src="survival-icon.png" alt="Survival Icon">
-      <h1>Survival Signals Bot</h1>
-      <p>Enter your Telegram User ID to subscribe or click below for help:</p>
-      <button id="infoBtn" class="btn">How to find TG ID</button>
-      <div class="form-wrapper">
-        <label for="telegramId">Telegram User ID</label>
-        <input type="text" id="telegramId" placeholder="e.g. 123456789" />
-        <button id="subscribeBtn" class="btn">Subscribe &amp; Survive</button>
-      </div>
-    </div>
-  </header>
-  <div id="modalBackdrop" class="modal-backdrop">
-    <div class="modal">
-      <button id="modalClose" class="modal-close">&times;</button>
-      <h2>How to Find Your Telegram User ID</h2>
-      <p>Use <code>@RawDataBot</code> in Telegram:</p>
-      <img src="tg-step1.png" alt="Open @RawDataBot and type /getid">
-      <p>1. Open Telegram and start a chat with <code>@RawDataBot</code>.</p>
-      <img src="tg-step2.png" alt="Receive your numeric ID from bot">
-      <p>2. Send <code>/getid</code> and copy the numeric ID it returns.</p>
-      <p>3. Paste that number into the form and click Subscribe.</p>
-    </div>
-  </div>
-  <section class="features">
-    <div class="container">
-      <h2>Why Survival Signals?</h2>
-      <div class="grid">
-        <div class="feature"><h3>Instant Alerts</h3><p>Real-time buy/sell signals pushed to your Telegram.</p></div>
-        <div class="feature"><h3>Battle-Tested Strategy</h3><p>Proven across BTC, ETH, and SOL.</p></div>
-        <div class="feature"><h3>Affordable</h3><p>Unlimited access for $20/month.</p></div>
-        <div class="feature"><h3>24/7 Monitoring</h3><p>Never miss an opportunity.</p></div>
-      </div>
-    </div>
-  </section>
-  <section class="testimonials">
-    <div class="container">
-      <h2>Sample Backtest Results</h2>
-      <table>
-        <thead><tr><th>Pair</th><th>ROI (%)</th><th>Sharpe</th><th>Drawdown</th></tr></thead>
-        <tbody>
-          <tr><td>BTC/USDT</td><td>15.2</td><td>1.45</td><td>4.1</td></tr>
-          <tr><td>ETH/USDT</td><td>12.7</td><td>1.30</td><td>3.8</td></tr>
-          <tr><td>SOL/USDT</td><td>18.5</td><td>1.60</td><td>5.0</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-  <footer>
-    <div class="container">
-      <p>&copy; 2025 Survival Signals Bot.</p>
-    </div>
-  </footer>
 </body>
 </html>
