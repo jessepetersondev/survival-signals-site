@@ -11,6 +11,8 @@
   <script src="https://cdn.jsdelivr.net/npm/countup.js@2.0.7/dist/countUp.umd.js"></script>
   <!-- Particles.js -->
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <!-- Telegram Login Widget -->
+  <script async src="https://telegram.org/js/telegram-widget.js?22"></script>
 
   <style>
     /* Desperate survival theme */
@@ -124,20 +126,13 @@
       width: 90%;
       max-width: 360px;
     }
-    .form-wrapper label {
-      display: block;
-      color: #e53935;
-      margin-bottom: 5px;
-      font-weight: bold;
+    .form-wrapper .telegram-login {
+      margin: 10px 0;
+      display: flex;
+      justify-content: center;
     }
-    .form-wrapper input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #555;
-      border-radius: 4px;
-      background: #222;
-      color: #fff;
-      margin-bottom: 15px;
+    .form-wrapper .subscribe-btn {
+      margin-top: 15px;
     }
 
     /* Animated Counters */
@@ -240,14 +235,19 @@
   <header>
     <img src="survival-icon.png" alt="Survival Icon" />
     <h1>Survival Signals Bot</h1>
-    <p>Only the strongest traders survive. Enter your Telegram ID to join!</p>
-    <p>Our AI bot never sleeps—24/7 it’s scanning markets, downloading fresh data, optimizing parameters, backtesting strategies, and deploying the best signals straight to your Telegram so you never miss an opportunity.</p>
+    <p>Only the strongest traders survive. Log in with Telegram to join!</p>
+    <p>Our AI bot never sleeps—24/7 it's scanning markets, downloading fresh data, optimizing parameters, backtesting strategies, and deploying the best signals straight to your Telegram so you never miss an opportunity.</p>
     <div class="form-wrapper">
-      <label for="telegramId">Telegram User ID</label>
-      <input type="text" id="telegramId" placeholder="e.g. 123456789" />
-      <button id="subscribeBtn" class="btn">Subscribe & Survive</button>
+      <div class="telegram-login">
+        <!-- Telegram Login Widget -->
+        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-login="SurvivalSignalsBot" 
+                data-size="large" 
+                data-onauth="onTelegramAuth(user)" 
+                data-request-access="write"></script>
+      </div>
+      <button id="subscribeBtn" class="btn subscribe-btn">Subscribe & Survive</button>
     </div>
-    <button id="infoBtn" class="btn" style="margin-top:10px;">How to find TG ID</button>
 
     <div class="counters">
       <div class="counter">
@@ -272,11 +272,9 @@
   <div id="modalBackdrop" class="modal-backdrop">
     <div class="modal">
       <button id="modalClose" class="modal-close">&times;</button>
-      <h2>How to Find Your Telegram User ID</h2>
-      <p>In Telegram, search and message <code>@RawDataBot</code>:</p>
-      <p>1. Open a chat with <code>@RawDataBot</code>.</p>
-      <p>2. Send <code>/getid</code> and copy the numeric ID it replies with.</p>
-      <p>3. Paste it above and click "Subscribe & Survive".</p>
+      <h2>Telegram Login</h2>
+      <p>Click the "Log in with Telegram" button above to authorize with your Telegram account.</p>
+      <p>This will securely connect your Telegram account to receive survival signals.</p>
     </div>
   </div>
 
@@ -287,7 +285,7 @@
         <div class="feature"><h3>Immediate Alerts</h3><p>In a world collapsing, every second counts—act fast or perish.</p></div>
         <div class="feature"><h3>Battle-Tested Strategy</h3><p>Survive volatile markets with tried-and-true algorithms.</p></div>
         <div class="feature"><h3>Lifeline Pricing</h3><p>Essential protection at just $14/month—your survival costs less than a tank of gas.</p></div>
-        <div class="feature"><h3>24/7 Watch</h3><p>We never sleep so you don’t have to worry when night falls.</p></div>
+        <div class="feature"><h3>24/7 Watch</h3><p>We never sleep so you don't have to worry when night falls.</p></div>
       </div>
     </div>
   </section>
@@ -318,14 +316,41 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Stripe
       const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
+      
+      // Telegram Auth Handler
+      window.onTelegramAuth = function(user) {
+        // Store Telegram user data
+        localStorage.setItem('telegramUser', JSON.stringify(user));
+        console.log('Telegram user:', user);
+        
+        // Optional: Show success message
+        alert(`Logged in as ${user.first_name} ${user.last_name || ''} (${user.username ? '@' + user.username : 'ID: ' + user.id})`);
+        
+        // Enable subscribe button if needed
+        document.getElementById('subscribeBtn').disabled = false;
+      };
+      
       document.getElementById('subscribeBtn').addEventListener('click', async () => {
-        const telegramId = document.getElementById('telegramId').value.trim();
-        if (!telegramId) { alert('Enter your Telegram ID or face doom!'); return; }
+        // Get Telegram user data from localStorage
+        const telegramUser = JSON.parse(localStorage.getItem('telegramUser'));
+        
+        if (!telegramUser || !telegramUser.id) { 
+          alert('Please log in with Telegram first!'); 
+          return; 
+        }
+        
         try {
           const res = await fetch('https://api.survivalsignals.trade/create-checkout-session', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ telegram_user_id: telegramId })
+            method:'POST', 
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ 
+              telegram_user_id: telegramUser.id,
+              telegram_username: telegramUser.username,
+              telegram_first_name: telegramUser.first_name,
+              telegram_last_name: telegramUser.last_name
+            })
           });
+          
           if (!res.ok) throw new Error(`Status ${res.status}`);
           const { sessionId } = await res.json();
           await stripe.redirectToCheckout({ sessionId });
@@ -336,7 +361,7 @@
       });
 
       // Modal
-      document.getElementById('infoBtn').addEventListener('click', () => {
+      document.getElementById('infoBtn')?.addEventListener('click', () => {
         document.getElementById('modalBackdrop').style.display = 'flex';
       });
       document.getElementById('modalClose').addEventListener('click', () => {
