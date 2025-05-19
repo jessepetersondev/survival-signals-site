@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
-  
+
   <style>
     /* Reset and Base Styles */
     *, *::before, *::after {
@@ -1059,11 +1059,7 @@
   </header>
 
   <div class="ticker">
-    <span id="price-ticker">
-      <i class="fas fa-radiation"></i>
-      MARKET ALERT: BTC: $67,842.35 • ETH: $3,521.78 • SOL: $152.64 • DOGE: $0.1243
-      <i class="fas fa-radiation"></i>
-    </span>
+    <span id="price-ticker"><i class="fas fa-radiation"></i> MARKET ALERT: BTC: $67,842.35 • ETH: $3,521.78 • SOL: $152.64 • DOGE: $0.1243 <i class="fas fa-radiation"></i></span>
   </div>
 
   <div id="modalBackdrop" class="modal-backdrop">
@@ -1206,101 +1202,195 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // CountUp constructor
-      const CountUpCtor = window.CountUp?.CountUp || window.CountUp;
-
       // Stripe
-      const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPJ');
-
+      const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
+      
       // Telegram Auth Handler
       window.onTelegramAuth = function(user) {
+        // Store Telegram user data
         localStorage.setItem('telegramUser', JSON.stringify(user));
+        console.log('Telegram user:', user);
+        
+        // Show success message
+        const alertMsg = `CONNECTED: ${user.first_name} ${user.last_name || ''} (${user.username ? '@' + user.username : 'ID: ' + user.id})`;
+        
+        // Create custom alert
+        const alertEl = document.createElement('div');
+        alertEl.style.position = 'fixed';
+        alertEl.style.top = '20px';
+        alertEl.style.left = '50%';
+        alertEl.style.transform = 'translateX(-50%)';
+        alertEl.style.background = 'rgba(76, 175, 80, 0.9)';
+        alertEl.style.color = '#fff';
+        alertEl.style.padding = '15px 30px';
+        alertEl.style.borderRadius = '4px';
+        alertEl.style.zIndex = '9999';
+        alertEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+        alertEl.style.fontFamily = 'var(--font-mono)';
+        alertEl.textContent = alertMsg;
+        
+        document.body.appendChild(alertEl);
+        
+        setTimeout(() => {
+          alertEl.style.opacity = '0';
+          alertEl.style.transition = 'opacity 0.5s';
+          setTimeout(() => alertEl.remove(), 500);
+        }, 3000);
+        
+        // Enable subscribe button if needed
         document.getElementById('subscribeBtn').disabled = false;
       };
-
+      
       // Subscription handler
-      async function handleSubscription() {
-        const telegramUser = JSON.parse(localStorage.getItem('telegramUser') || '{}');
-        if (!telegramUser.id) {
+      const handleSubscription = async () => {
+        // Get Telegram user data from localStorage
+        const telegramUser = JSON.parse(localStorage.getItem('telegramUser'));
+        
+        if (!telegramUser || !telegramUser.id) { 
+          // Show modal if not logged in
           document.getElementById('modalBackdrop').style.display = 'flex';
-          return;
+          return; 
         }
+        
         try {
           const res = await fetch('https://api.survivalsignals.trade/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json' },
-            body: JSON.stringify({ telegram_user_id: telegramUser.id })
+            method:'POST', 
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ 
+              telegram_user_id: telegramUser.id,
+              telegram_username: telegramUser.username,
+              telegram_first_name: telegramUser.first_name,
+              telegram_last_name: telegramUser.last_name
+            })
           });
+          
+          if (!res.ok) throw new Error(`Status ${res.status}`);
           const { sessionId } = await res.json();
           await stripe.redirectToCheckout({ sessionId });
-        } catch (e) {
+        } catch(e) {
           console.error(e);
-          alert('Checkout failed—your survival is at stake.');
+          
+          // Create custom error alert
+          const alertEl = document.createElement('div');
+          alertEl.style.position = 'fixed';
+          alertEl.style.top = '20px';
+          alertEl.style.left = '50%';
+          alertEl.style.transform = 'translateX(-50%)';
+          alertEl.style.background = 'rgba(255, 58, 47, 0.9)';
+          alertEl.style.color = '#fff';
+          alertEl.style.padding = '15px 30px';
+          alertEl.style.borderRadius = '4px';
+          alertEl.style.zIndex = '9999';
+          alertEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+          alertEl.style.fontFamily = 'var(--font-mono)';
+          alertEl.textContent = 'ALERT: Checkout failed—your survival is at stake.';
+          
+          document.body.appendChild(alertEl);
+          
+          setTimeout(() => {
+            alertEl.style.opacity = '0';
+            alertEl.style.transition = 'opacity 0.5s';
+            setTimeout(() => alertEl.remove(), 500);
+          }, 3000);
         }
-      }
+      };
+      
+      // Add event listeners to subscription buttons
       document.getElementById('subscribeBtn').addEventListener('click', handleSubscription);
       document.getElementById('finalCTA').addEventListener('click', handleSubscription);
 
-      // Modal close
+      // Modal
       document.getElementById('modalClose').addEventListener('click', () => {
         document.getElementById('modalBackdrop').style.display = 'none';
       });
 
-      // Fetch Airtable metrics
-      const AIRTABLE_API_KEY = 'patqtbUoOEHJ2ZqX2.64c5794ec2f6d20e65c8667290e70f445eb0f70676ebb256391d9045b6ebc1a0';
-      const AIRTABLE_BASE_ID = 'appmbM11KReO4FJfW';
-      const AIRTABLE_TABLE_NAME = 'SurvivalSignalsMetrics';
+      // Counters with more dramatic values
+      new CountUp.CountUp('count1', 0, { duration: 3, useEasing: true }).start();
+      new CountUp.CountUp('count2', 0, { duration: 3, useEasing: true }).start();
+      new CountUp.CountUp('count3', 0, { duration: 2, useEasing: true }).start();
 
-      async function fetchMetrics() {
-        try {
-          const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}?fields[]=MetricName&fields[]=Value`;
-          console.info(url);
-          const res = await fetch(url, {
-            headers: {
-              'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          const json = await res.json();
-          console.info(json);
-          let signals = 0, scans = 0;
-          json.records.forEach(r => {
-            if (r.fields.MetricName === 'signals_delivered') signals = r.fields.Value || 0;
-            if (r.fields.MetricName === 'nightly_scans') scans = r.fields.Value || 0;
-          });
-          new CountUpCtor('count1', signals, { duration: 2 }).start();
-          new CountUpCtor('count3', scans, { duration: 2 }).start();
-        } catch (e) {
-          console.error('Metrics fetch error', e);
-        }
-      }
-      fetchMetrics();
-      setInterval(fetchMetrics, 30000);
+      // Load live data from text files
+      fetch('metrics/buy-sell-signals.txt')
+        .then(response => response.text())
+        .then(data => {
+          const signalCount = parseInt(data.trim()) || 0;
+          new CountUp.CountUp('count1', signalCount, { duration: 3, useEasing: true }).start();
+        })
+        .catch(error => {
+          console.error('Error fetching signals data:', error);
+        });
 
-      // Live price ticker
-      const ticker = document.getElementById('price-ticker');
-      async function updateTicker() {
-        try {
-          const res = await fetch('https://rest.coincap.io/v3/assets?ids=bitcoin,ethereum,solana,dogecoin');
-          const { data } = await res.json();
-          const prices = {};
-          data.forEach(item => prices[item.id] = +item.priceUsd);
-          ticker.innerHTML =
-            `<i class="fas fa-radiation"></i> ` +
-            `BTC: $${prices.bitcoin.toFixed(2)} • ` +
-            `ETH: $${prices.ethereum.toFixed(2)} • ` +
-            `SOL: $${prices.solana.toFixed(2)} • ` +
-            `DOGE: $${prices.dogecoin.toFixed(4)} ` +
-            `<i class="fas fa-radiation"></i>`;
-        } catch (e) {
-          console.error('Ticker update error', e);
-        }
-      }
-      updateTicker();
-      setInterval(updateTicker, 10000);
+      fetch('metrics/subscribers.txt')
+        .then(response => response.text())
+        .then(data => {
+          const subscriberCount = parseInt(data.trim()) || 0;
+          new CountUp.CountUp('count2', subscriberCount, { duration: 3, useEasing: true }).start();
+        })
+        .catch(error => {
+          console.error('Error fetching subscriber data:', error);
+        });
+
+      fetch('nightly-scans.txt')
+        .then(response => response.text())
+        .then(data => {
+          const scanCount = parseInt(data.trim()) || 0;
+          new CountUp.CountUp('count3', scanCount, { duration: 2, useEasing: true }).start();
+        })
+        .catch(error => {
+          console.error('Error fetching scan data:', error);
+        });
 
       // Particles
       particlesJS.load('particles-js', 'particles.json', () => {});
+
+      // Live price ticker - Fallback mechanism in case WebSocket fails
+      const ticker = document.getElementById('price-ticker');
+      
+      // First try WebSocket connection
+      try {
+        const ws = new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin,ethereum,solana,dogecoin');
+        
+        // Set a timeout to handle connection issues
+        const wsTimeout = setTimeout(() => {
+          console.log('WebSocket connection timeout, using fallback prices');
+          // Keep the static prices that are already in the HTML
+        }, 5000);
+        
+        ws.onopen = () => {
+          console.log('WebSocket connection established');
+          clearTimeout(wsTimeout);
+        };
+        
+        ws.onmessage = e => {
+          try {
+            const d = JSON.parse(e.data);
+            // Only update if we have valid data
+            if (d.bitcoin && d.ethereum && d.solana) {
+              ticker.innerHTML = 
+                `<i class="fas fa-radiation"></i> MARKET ALERT: BTC: $${(+d.bitcoin).toFixed(2)} • ETH: $${(+d.ethereum).toFixed(2)} • SOL: $${(+d.solana).toFixed(2)} • DOGE: $${(+d.dogecoin || 0.1243).toFixed(4)} <i class="fas fa-radiation"></i>`;
+            }
+          } catch (err) {
+            console.error('Error parsing WebSocket data:', err);
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          clearTimeout(wsTimeout);
+          // Keep the static prices that are already in the HTML
+        };
+        
+        ws.onclose = () => {
+          console.log('WebSocket connection closed');
+          // Keep the static prices that are already in the HTML
+        };
+      } catch (err) {
+        console.error('Error setting up WebSocket:', err);
+        // Keep the static prices that are already in the HTML
+      }
+      
+      // Static countdown - no need for JavaScript updates
+      // The countdown values are hardcoded in the HTML
     });
   </script>
 </body>
