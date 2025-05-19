@@ -1310,7 +1310,7 @@
       new CountUp.CountUp('count3', 0, { duration: 2, useEasing: true }).start();
 
       // Load live data from text files
-      fetch('buy-sell-signals.txt')
+      fetch('metrics/buy-sell-signals.txt')
         .then(response => response.text())
         .then(data => {
           const signalCount = parseInt(data.trim()) || 0;
@@ -1320,7 +1320,7 @@
           console.error('Error fetching signals data:', error);
         });
 
-      fetch('subscribers.txt')
+      fetch('metrics/subscribers.txt')
         .then(response => response.text())
         .then(data => {
           const subscriberCount = parseInt(data.trim()) || 0;
