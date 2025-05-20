@@ -1096,9 +1096,23 @@
       </div>
       <button id="subscribeBtn" class="btn btn-large subscribe-btn">Subscribe & Survive</button>
       <p class="form-note"><i class="fas fa-shield-alt"></i> Limited spots available. Act now before it's too late.</p>
-      <button id="manageBtn" class="btn btn-warning" style="margin-top:20px;">
-        Manage / Cancel Subscription
-      </button>
+      <div id="manage-container" style="text-align:center; margin-top:20px;">
+      <!-- Telegram login (replace data-telegram-login with your bot) -->
+      <div id="telegram-login">
+          <script async src="https://telegram.org/js/telegram-widget.js?15"
+            data-telegram-login="SurvivalSignalsBot"
+            data-size="medium"
+            data-userpic="false"
+            data-radius="5"
+            data-request-access="write"
+            data-onauth="onTelegramAuth">
+          </script>
+        </div>
+        <!-- Hidden until we have a logged-in user -->
+        <button id="manageBtn" class="btn btn-warning" style="display:none; margin-top:10px;">
+          Manage / Cancel Subscription
+        </button>
+      </div>
     </div>
 
     <!-- <div class="counters">
@@ -1421,26 +1435,37 @@
       setInterval(fetchTicker, 90000);
     });
   
-    document.getElementById('manageBtn').addEventListener('click', async () => {
-      const subscriptionId = localStorage.getItem('subscriptionId');
-      if (!subscriptionId) {
-        return alert('No active subscription found. Please subscribe first.');
+     // Called by Telegram widget on successful login
+      let tgUserId = null;
+      function onTelegramAuth(user) {
+        tgUserId = user.id;
+        // Hide login widget, show manage button
+        document.getElementById('telegram-login').style.display = 'none';
+        document.getElementById('manageBtn').style.display = 'inline-block';
       }
 
-      try {
-        const res = await fetch('https://api.survivalsignals.trade/create-portal-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subscription_id: subscriptionId })
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const { url } = await res.json();
-        window.location.href = url;
-      } catch (err) {
-        console.error('Portal error:', err);
-        alert('Unable to open management portal. See console for details.');
-      }
-    });
+      document.getElementById('manageBtn').addEventListener('click', async () => {
+        if (!tgUserId) {
+          return alert('Please log in with Telegram first.');
+        }
+        try {
+          const res = await fetch('https://api.survivalsignals.trade/create-portal-session', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({ telegram_user_id: tgUserId })
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(()=>null);
+            console.error('Portal error:', err || res.statusText);
+            return alert('Could not open management portal.');
+          }
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch (e) {
+          console.error('Network error:', e);
+          alert('Network error—please try again.');
+        }
+      });
   </script>
 </body>
 </html>
