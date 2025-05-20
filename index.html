@@ -1277,6 +1277,7 @@
       const stripe = Stripe('pk_test_51RMU6U2X75x3JSfvbmhbXMUiEGJ4JuiI53R2gvtr6WpchNPWC3R3mdvGuHO9ADzR9JECJRvsRVfo2T1Uv21JcVXM00N5QtJ1Pa');
       
       // Telegram Auth Handler
+      let tgUserId = null;
       window.onTelegramAuth = function(user) {
         // Store Telegram user data
         localStorage.setItem('telegramUser', JSON.stringify(user));
@@ -1301,6 +1302,11 @@
         alertEl.textContent = alertMsg;
         
         document.body.appendChild(alertEl);
+
+        tgUserId = user.id;
+        // Hide login widget, show manage button
+        document.getElementById('telegram-login').style.display = 'none';
+        document.getElementById('manageBtn').style.display = 'inline-block';
         
         setTimeout(() => {
           alertEl.style.opacity = '0';
@@ -1434,15 +1440,6 @@
       fetchTicker();
       setInterval(fetchTicker, 90000);
     });
-  
-     // Called by Telegram widget on successful login
-      let tgUserId = null;
-      function onTelegramAuth(user) {
-        tgUserId = user.id;
-        // Hide login widget, show manage button
-        document.getElementById('telegram-login').style.display = 'none';
-        document.getElementById('manageBtn').style.display = 'inline-block';
-      }
 
       document.getElementById('manageBtn').addEventListener('click', async () => {
         if (!tgUserId) {
