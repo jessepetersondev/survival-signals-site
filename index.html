@@ -21,6 +21,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
 
   <style>
+    /* Ensure the icon isn’t cut off on mobile */
+    @media (max-width: 768px) {
+      header {
+        /* push everything down a little */
+        padding-top: 40px;
+      }
+      header img {
+        /* give the image some breathing room */
+        margin-top: 10px;
+        /* make sure it scales cleanly */
+        object-fit: contain;
+      }
+    }
+
     /* Reset and Base Styles */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -297,7 +311,7 @@
     
     .logo-container {
       position: relative;
-      margin-bottom: 20px;
+      margin-bottom: 1px;
       z-index: 3;
     }
     
@@ -1046,7 +1060,7 @@
       <p class="form-note"><i class="fas fa-shield-alt"></i> Limited spots available. Act now before it's too late.</p>
     </div>
 
-    <div class="counters">
+    <!-- <div class="counters">
       <div class="counter">
         <div id="count1" class="number">0</div>
         <div class="label">Signals Delivered</div>
@@ -1055,11 +1069,13 @@
         <div id="count3" class="number">0</div>
         <div class="label">Nightly Scans</div>
       </div>
-    </div>
+    </div> -->
   </header>
 
   <div class="ticker">
-    <span id="price-ticker"><i class="fas fa-radiation"></i> MARKET ALERT: BTC: $67,842.35 • ETH: $3,521.78 • SOL: $152.64 • DOGE: $0.1243 <i class="fas fa-radiation"></i></span>
+    <span id="price-ticker">
+      <i class="fas fa-radiation"></i> Loading live prices… <i class="fas fa-radiation"></i>
+    </span>
   </div>
 
   <div id="modalBackdrop" class="modal-backdrop">
@@ -1304,93 +1320,63 @@
         document.getElementById('modalBackdrop').style.display = 'none';
       });
 
-      // Counters with more dramatic values
-      new CountUp.CountUp('count1', 0, { duration: 3, useEasing: true }).start();
-      new CountUp.CountUp('count2', 0, { duration: 3, useEasing: true }).start();
-      new CountUp.CountUp('count3', 0, { duration: 2, useEasing: true }).start();
+      // // Counters with more dramatic values
+      // new CountUp.CountUp('count1', 0, { duration: 3, useEasing: true }).start();
+      // new CountUp.CountUp('count2', 0, { duration: 3, useEasing: true }).start();
+      // new CountUp.CountUp('count3', 0, { duration: 2, useEasing: true }).start();
 
-      // Load live data from text files
-      fetch('metrics/buy-sell-signals.txt')
-        .then(response => response.text())
-        .then(data => {
-          const signalCount = parseInt(data.trim()) || 0;
-          new CountUp.CountUp('count1', signalCount, { duration: 3, useEasing: true }).start();
-        })
-        .catch(error => {
-          console.error('Error fetching signals data:', error);
-        });
+      // // Load live data from text files
+      // fetch('metrics/buy-sell-signals.txt')
+      //   .then(response => response.text())
+      //   .then(data => {
+      //     const signalCount = parseInt(data.trim()) || 0;
+      //     new CountUp.CountUp('count1', signalCount, { duration: 3, useEasing: true }).start();
+      //   })
+      //   .catch(error => {
+      //     console.error('Error fetching signals data:', error);
+      //   });
 
-      fetch('metrics/subscribers.txt')
-        .then(response => response.text())
-        .then(data => {
-          const subscriberCount = parseInt(data.trim()) || 0;
-          new CountUp.CountUp('count2', subscriberCount, { duration: 3, useEasing: true }).start();
-        })
-        .catch(error => {
-          console.error('Error fetching subscriber data:', error);
-        });
+      // fetch('nightly-scans.txt')
+      //   .then(response => response.text())
+      //   .then(data => {
+      //     const scanCount = parseInt(data.trim()) || 0;
+      //     new CountUp.CountUp('count3', scanCount, { duration: 2, useEasing: true }).start();
+      //   })
+      //   .catch(error => {
+      //     console.error('Error fetching scan data:', error);
+      //   });
 
-      fetch('nightly-scans.txt')
-        .then(response => response.text())
-        .then(data => {
-          const scanCount = parseInt(data.trim()) || 0;
-          new CountUp.CountUp('count3', scanCount, { duration: 2, useEasing: true }).start();
-        })
-        .catch(error => {
-          console.error('Error fetching scan data:', error);
-        });
+      // // Particles
+      // particlesJS.load('particles-js', 'particles.json', () => {});
 
-      // Particles
-      particlesJS.load('particles-js', 'particles.json', () => {});
-
-      // Live price ticker - Fallback mechanism in case WebSocket fails
+      // Live price ticker via CoinCap v3 REST API (poll every 10s)
       const ticker = document.getElementById('price-ticker');
-      
-      // First try WebSocket connection
-      try {
-        const ws = new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin,ethereum,solana,dogecoin');
-        
-        // Set a timeout to handle connection issues
-        const wsTimeout = setTimeout(() => {
-          console.log('WebSocket connection timeout, using fallback prices');
-          // Keep the static prices that are already in the HTML
-        }, 5000);
-        
-        ws.onopen = () => {
-          console.log('WebSocket connection established');
-          clearTimeout(wsTimeout);
-        };
-        
-        ws.onmessage = e => {
-          try {
-            const d = JSON.parse(e.data);
-            // Only update if we have valid data
-            if (d.bitcoin && d.ethereum && d.solana) {
-              ticker.innerHTML = 
-                `<i class="fas fa-radiation"></i> MARKET ALERT: BTC: $${(+d.bitcoin).toFixed(2)} • ETH: $${(+d.ethereum).toFixed(2)} • SOL: $${(+d.solana).toFixed(2)} • DOGE: $${(+d.dogecoin || 0.1243).toFixed(4)} <i class="fas fa-radiation"></i>`;
-            }
-          } catch (err) {
-            console.error('Error parsing WebSocket data:', err);
-          }
-        };
-        
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          clearTimeout(wsTimeout);
-          // Keep the static prices that are already in the HTML
-        };
-        
-        ws.onclose = () => {
-          console.log('WebSocket connection closed');
-          // Keep the static prices that are already in the HTML
-        };
-      } catch (err) {
-        console.error('Error setting up WebSocket:', err);
-        // Keep the static prices that are already in the HTML
+      // replace YOUR_API_KEY below with your actual CoinCap v3 API key
+      const COINCAP_URL = 'https://rest.coincap.io/v3/assets?ids=bitcoin,ethereum,solana&apiKey=b788c4b112ad7760de881610adc7daf8036bc1f93a8ca3d28e8de5d279a724be';
+
+      async function fetchTicker() {
+        try {
+          const resp = await fetch(COINCAP_URL);
+          const json = await resp.json();
+          // json.data is an array of assets
+          const map = {};
+          json.data.forEach(a => map[a.id] = parseFloat(a.priceUsd));
+          const btc = map.bitcoin?.toFixed(2)  || '--';
+          const eth = map.ethereum?.toFixed(2) || '--';
+          const sol = map.solana?.toFixed(2)   || '--';
+          ticker.innerHTML = `
+            <i class="fas fa-radiation"></i>
+            BTC: $${btc} • ETH: $${eth} • SOL: $${sol}
+            <i class="fas fa-radiation"></i>
+          `;
+        } catch (err) {
+          console.error('Ticker fetch error:', err);
+        }
       }
-      
-      // Static countdown - no need for JavaScript updates
-      // The countdown values are hardcoded in the HTML
+
+      // initial load + repeat every 60 seconds
+      fetchTicker();
+      setInterval(fetchTicker, 60000);
     });
   </script>
 </body>
