@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Account – Survival Signals Bot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #1a0a0a;
+      color: #f2f2f2;
+    }
+    .navbar {
+      display: flex;
+      justify-content: flex-end;
+      background: #121212;
+      padding: 10px 20px;
+    }
+    .navbar a {
+      color: #f2f2f2;
+      text-decoration: none;
+      margin-left: 20px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .navbar a:hover {
+      background: #222;
+    }
+    .container {
+      max-width: 480px;
+      margin: 80px auto;
+      padding: 20px;
+      background: #121212;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.7);
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #e53935;
+    }
+    .btn {
+      background: #8bc34a;
+      color: #fff;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: background 0.3s;
+      margin-top: 20px;
+    }
+    .btn:hover {
+      background: #7cb342;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html">Home</a>
+    <a href="account.html">My Account</a>
+  </nav>
+
+  <div class="container">
+    <h1>Manage Your Subscription</h1>
+    <p>Log in with Telegram to open Stripe’s billing portal and cancel or update your plan.</p>
+    <div id="telegram-login">
+      <script async src="https://telegram.org/js/telegram-widget.js?15"
+        data-telegram-login="SurvivalSignalsBot"
+        data-size="large"
+        data-userpic="false"
+        data-radius="5"
+        data-request-access="write"
+        data-onauth="onTelegramAuth">
+      </script>
+    </div>
+  </div>
+
+  <script>
+    async function onTelegramAuth(user) {
+      // user.id is the numeric Telegram user ID
+      try {
+        const res = await fetch('https://api.survivalsignals.trade/create-portal-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ telegram_user_id: user.id })
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          console.error('Portal session error:', err);
+          return alert('Could not open billing portal. Check console.');
+        }
+        const { url } = await res.json();
+        // Redirect into Stripe Billing Portal
+        window.location.href = url;
+      } catch (e) {
+        console.error('Network error:', e);
+        alert('Network error—please try again.');
+      }
+    }
+  </script>
+</body>
+</html>
