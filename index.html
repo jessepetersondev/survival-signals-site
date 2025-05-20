@@ -1096,6 +1096,9 @@
       </div>
       <button id="subscribeBtn" class="btn btn-large subscribe-btn">Subscribe & Survive</button>
       <p class="form-note"><i class="fas fa-shield-alt"></i> Limited spots available. Act now before it's too late.</p>
+      <button id="manageBtn" class="btn btn-warning" style="margin-top:20px;">
+        Manage / Cancel Subscription
+      </button>
     </div>
 
     <!-- <div class="counters">
@@ -1319,7 +1322,8 @@
           });
           
           if (!res.ok) throw new Error(`Status ${res.status}`);
-          const { sessionId } = await res.json();
+          const { sessionId, subscriptionId } = await res.json();
+          localStorage.setItem('subscriptionId', subscriptionId);
           await stripe.redirectToCheckout({ sessionId });
         } catch(e) {
           console.error(e);
@@ -1415,6 +1419,27 @@
       // initial load + repeat every 90 seconds
       fetchTicker();
       setInterval(fetchTicker, 90000);
+    });
+  
+    document.getElementById('manageBtn').addEventListener('click', async () => {
+      const subscriptionId = localStorage.getItem('subscriptionId');
+      if (!subscriptionId) {
+        return alert('No active subscription found. Please subscribe first.');
+      }
+
+      try {
+        const res = await fetch('https://api.survivalsignals.trade/create-portal-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription_id: subscriptionId })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const { url } = await res.json();
+        window.location.href = url;
+      } catch (err) {
+        console.error('Portal error:', err);
+        alert('Unable to open management portal. See console for details.');
+      }
     });
   </script>
 </body>
