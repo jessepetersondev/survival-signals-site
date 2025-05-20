@@ -64,10 +64,10 @@
     <a href="account.html">My Account</a>
   </nav>
 
-  <div class="container">
+  <div class="container" id="account-container">
     <h1>Manage Your Subscription</h1>
-    <p>Log in with Telegram to open Stripe’s billing portal and cancel or update your plan.</p>
-    <div id="telegram-login">
+    <!-- 1) Telegram widget area -->
+    <div id="login-widget">
       <script async src="https://telegram.org/js/telegram-widget.js?15"
         data-telegram-login="SurvivalSignalsBot"
         data-size="large"
@@ -77,30 +77,65 @@
         data-onauth="onTelegramAuth">
       </script>
     </div>
+    <!-- 2) Subscription info area (hidden until we fetch) -->
+    <div id="sub-info" style="display:none;">
+      <p id="sub-status"></p>
+      <p>Next billing: <span id="sub-next"></span></p>
+      <button id="cancelBtn" class="btn">Manage / Cancel Subscription</button>
+    </div>
   </div>
 
   <script>
-    async function onTelegramAuth(user) {
-      // user.id is the numeric Telegram user ID
+    // Called by Telegram login widget
+    function onTelegramAuth(user) {
+      localStorage.setItem('tg_user', JSON.stringify(user));
+      initAccount();
+    }
+
+    async function initAccount() {
+      const raw = localStorage.getItem('tg_user');
+      if (!raw) {
+        // not logged in → show widget only
+        document.getElementById('login-widget').style.display = 'block';
+        return;
+      }
+      const user = JSON.parse(raw);
+      document.getElementById('login-widget').style.display = 'none';
+
+      // fetch subscription details
       try {
-        const res = await fetch('https://api.survivalsignals.trade/create-portal-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch('https://api.survivalsignals.trade/subscription-details', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ telegram_user_id: user.id })
         });
-        if (!res.ok) {
-          const err = await res.text();
-          console.error('Portal session error:', err);
-          return alert('Could not open billing portal. Check console.');
+        const info = await res.json();
+        if (!info.subscribed) {
+          document.getElementById('sub-status').textContent = 'You are not currently subscribed.';
+        } else {
+          document.getElementById('sub-status').textContent =
+            `Subscribed to Survival Signals — status: ${info.status.toUpperCase()}`;
+          const date = new Date(info.current_period_end * 1000);
+          document.getElementById('sub-next').textContent = date.toLocaleString();
+          // show manage button
+          document.getElementById('cancelBtn').style.display = 'inline-block';
+          document.getElementById('cancelBtn').addEventListener('click', async () => {
+            // open portal using same endpoint you already built
+            const portal = await fetch('https://api.survivalsignals.trade/create-portal-session', {
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({ telegram_user_id: user.id })
+            }).then(r=>r.json());
+            window.location.href = portal.url;
+          });
         }
-        const { url } = await res.json();
-        // Redirect into Stripe Billing Portal
-        window.location.href = url;
-      } catch (e) {
-        console.error('Network error:', e);
-        alert('Network error—please try again.');
+      } catch (err) {
+        console.error('Error fetching subscription details', err);
       }
+      document.getElementById('sub-info').style.display = 'block';
     }
+
+    document.addEventListener('DOMContentLoaded', initAccount);
   </script>
 </body>
 </html>
