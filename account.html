@@ -4,84 +4,682 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>My Account – Survival Signals Bot</title>
+
+  <!-- Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <!-- Telegram Login Widget -->
+  <script async src="https://telegram.org/js/telegram-widget.js?22"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
   <style>
+    /* Reset and Base Styles */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    :root {
+      --color-danger: #ff3a2f;
+      --color-danger-glow: rgba(255, 58, 47, 0.6);
+      --color-warning: #ffa726;
+      --color-success: #4caf50;
+      --color-success-glow: rgba(76, 175, 80, 0.6);
+      --color-dark: #0a0a0a;
+      --color-darker: #050505;
+      --color-text: #e6e6e6;
+      --color-text-dim: #a0a0a0;
+      --font-display: 'Orbitron', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-distressed: 'Special Elite', cursive;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--color-darker);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-danger);
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-warning);
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
     body {
       margin: 0;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      background: #1a0a0a;
-      color: #f2f2f2;
+      font-family: var(--font-mono);
+      background: var(--color-dark);
+      color: var(--color-text);
+      overflow-x: hidden;
+      line-height: 1.6;
+      background-image: 
+        linear-gradient(to bottom, rgba(10, 10, 10, 0.9), rgba(5, 5, 5, 0.95)),
+        url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDkwOTA5Ij48L3JlY3Q+CjxwYXRoIGQ9Ik0wIDVMNSAwWk02IDRMNCA2Wk0tMSAxTDEgLTFaIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=');
     }
-    .navbar {
-      display: flex;
-      justify-content: flex-end;
-      background: #121212;
-      padding: 10px 20px;
-    }
-    .navbar a {
-      color: #f2f2f2;
+    
+    a, button {
+      font-family: inherit;
+      color: inherit;
       text-decoration: none;
-      margin-left: 20px;
-      padding: 8px 12px;
-      border-radius: 4px;
-      transition: background 0.2s;
     }
-    .navbar a:hover {
-      background: #222;
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
+    
+    .text-danger {
+      color: var(--color-danger);
+    }
+    
+    .text-warning {
+      color: var(--color-warning);
+    }
+    
+    .text-success {
+      color: var(--color-success);
+    }
+    
+    .text-glitch {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .text-glitch::before,
+    .text-glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .text-glitch::before {
+      left: 2px;
+      text-shadow: -1px 0 var(--color-danger);
+      animation: glitch-anim-1 2s infinite linear alternate-reverse;
+    }
+    
+    .text-glitch::after {
+      left: -2px;
+      text-shadow: 1px 0 var(--color-warning);
+      animation: glitch-anim-2 3s infinite linear alternate-reverse;
+    }
+    
+    @keyframes glitch-anim-1 {
+      0%, 80%, 100% { clip-path: inset(0 0 0 0); }
+      20% { clip-path: inset(8% 0 8% 0); }
+      40% { clip-path: inset(20% 0 58% 0); }
+      60% { clip-path: inset(43% 0 12% 0); }
+    }
+    
+    @keyframes glitch-anim-2 {
+      0%, 80%, 100% { clip-path: inset(0 0 0 0); }
+      20% { clip-path: inset(25% 0 58% 0); }
+      40% { clip-path: inset(54% 0 7% 0); }
+      60% { clip-path: inset(14% 0 33% 0); }
+    }
+    
+    /* Navigation */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(5, 5, 5, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--color-danger);
+      z-index: 1000;
+      padding: 0.5rem 0;
+    }
+    
+    .navbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .navbar-logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--color-danger);
+    }
+    
+    .navbar-logo h1 {
+      font-size: 1.2rem;
+      margin: 0;
+      color: var(--color-danger);
+    }
+    
+    .navbar-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .navbar-links a {
+      position: relative;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.5rem 0;
+      transition: color 0.3s;
+    }
+    
+    .navbar-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--color-danger);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s;
+    }
+    
+    .navbar-links a:hover {
+      color: var(--color-danger);
+    }
+    
+    .navbar-links a:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+    
+    .navbar-links a.active {
+      color: var(--color-danger);
+    }
+    
+    .navbar-links a.active::after {
+      transform: scaleX(1);
+    }
+    
+    /* Main container */
     .container {
-      max-width: 480px;
-      margin: 80px auto;
+      max-width: 800px;
+      margin: 120px auto 60px;
       padding: 20px;
-      background: #121212;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Account container */
+    .account-container {
+      background: rgba(10, 10, 10, 0.8);
+      border: 1px solid rgba(255, 58, 47, 0.3);
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.7);
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .account-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--color-danger);
+      animation: form-scan 2s linear infinite;
+    }
+    
+    @keyframes form-scan {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    /* Scanlines effect */
+    .account-container::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 50%,
+        rgba(0, 0, 0, 0.1) 50%
+      );
+      background-size: 100% 4px;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.1;
+      animation: scanlines 8s linear infinite;
+    }
+    
+    @keyframes scanlines {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 100%; }
+    }
+    
+    .account-container h1 {
+      color: var(--color-danger);
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 2.5rem;
+      text-shadow: 0 0 10px var(--color-danger-glow);
+      animation: flicker 3s infinite alternate;
+    }
+    
+    @keyframes flicker {
+      0%, 5%, 10%, 15%, 20%, 100% { opacity: 1; }
+      7%, 13%, 17% { opacity: 0.8; }
+    }
+    
+    /* Buttons */
+    .btn {
+      position: relative;
+      background: var(--color-danger);
+      color: #fff;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--color-danger-glow);
+      transition: all 0.3s;
+      text-transform: uppercase;
+      font-family: var(--font-display);
+      letter-spacing: 1px;
+      overflow: hidden;
+      z-index: 3;
+      display: inline-block;
       text-align: center;
     }
-    h1 {
-      margin-bottom: 20px;
-      color: #e53935;
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transition: 0.5s;
+      z-index: -1;
     }
-    .btn {
-      background: #8bc34a;
-      color: #fff;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      transition: background 0.3s;
-      margin-top: 20px;
-    }
+    
     .btn:hover {
-      background: #7cb342;
+      background: #d32f2f;
+      box-shadow: 0 0 20px var(--color-danger-glow);
+      transform: translateY(-2px);
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn-success {
+      background: var(--color-success);
+      box-shadow: 0 0 10px var(--color-success-glow);
+    }
+    
+    .btn-success:hover {
+      background: #43a047;
+      box-shadow: 0 0 20px var(--color-success-glow);
+    }
+    
+    .btn-warning {
+      background: var(--color-warning);
+      box-shadow: 0 0 10px rgba(255, 167, 38, 0.6);
+    }
+    
+    .btn-warning:hover {
+      background: #f57c00;
+      box-shadow: 0 0 20px rgba(255, 167, 38, 0.6);
+    }
+    
+    /* Telegram login */
+    .telegram-login {
+      margin: 30px 0;
+      display: flex;
+      justify-content: center;
+    }
+    
+    /* Loading animation */
+    .loading {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255, 58, 47, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--color-danger);
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Status badges */
+    .status-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: var(--font-display);
+    }
+    
+    .status-active {
+      background: rgba(76, 175, 80, 0.1);
+      color: var(--color-success);
+      border: 1px solid var(--color-success);
+    }
+    
+    .status-inactive {
+      background: rgba(255, 58, 47, 0.1);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
+    }
+    
+    .status-trialing {
+      background: rgba(255, 167, 38, 0.1);
+      color: var(--color-warning);
+      border: 1px solid var(--color-warning);
+    }
+    
+    /* Subscription card */
+    .subscription-card {
+      background: rgba(20, 20, 20, 0.6);
+      border: 1px solid rgba(255, 58, 47, 0.3);
+      border-radius: 8px;
+      padding: 25px;
+      margin-top: 30px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .subscription-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 58, 47, 0.05),
+        transparent
+      );
+      animation: card-shine 3s infinite linear;
+    }
+    
+    @keyframes card-shine {
+      0% { transform: translateX(-100%) translateY(-100%); }
+      100% { transform: translateX(100%) translateY(100%); }
+    }
+    
+    .subscription-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 58, 47, 0.2);
+    }
+    
+    .subscription-title {
+      font-size: 1.3rem;
+      color: var(--color-text);
+      margin: 0;
+      font-family: var(--font-display);
+    }
+    
+    .subscription-details {
+      margin-bottom: 25px;
+    }
+    
+    .subscription-detail {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .subscription-detail:last-child {
+      border-bottom: none;
+    }
+    
+    .detail-label {
+      color: var(--color-text-dim);
+    }
+    
+    .detail-value {
+      font-weight: bold;
+      color: var(--color-text);
+    }
+    
+    /* Alerts */
+    .alert {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .alert::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+    
+    .alert-info {
+      background: rgba(33, 150, 243, 0.1);
+      border: 1px solid rgba(33, 150, 243, 0.3);
+      color: #90caf9;
+    }
+    
+    .alert-info::before {
+      background: #2196f3;
+    }
+    
+    .alert-warning {
+      background: rgba(255, 167, 38, 0.1);
+      border: 1px solid rgba(255, 167, 38, 0.3);
+      color: var(--color-warning);
+    }
+    
+    .alert-warning::before {
+      background: var(--color-warning);
+    }
+    
+    .alert-error {
+      background: rgba(255, 58, 47, 0.1);
+      border: 1px solid rgba(255, 58, 47, 0.3);
+      color: var(--color-danger);
+    }
+    
+    .alert-error::before {
+      background: var(--color-danger);
+    }
+    
+    .alert i {
+      margin-right: 10px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        margin: 100px 20px 40px;
+        padding: 15px;
+      }
+      
+      .account-container {
+        padding: 20px;
+      }
+      
+      .account-container h1 {
+        font-size: 2rem;
+      }
+      
+      .subscription-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .status-badge {
+        align-self: flex-start;
+      }
+      
+      .subscription-detail {
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .detail-value {
+        align-self: flex-end;
+      }
+      
+      .btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Navigation -->
   <nav class="navbar">
-    <a href="index.html">Home</a>
-    <a href="account.html">My Account</a>
+    <div class="navbar-container">
+      <div class="navbar-logo">
+        <img src="logo.png" alt="Survival Signals Bot" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1MzkzNSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTktOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4eiIvPjxwYXRoIGQ9Ik0xMiA2Yy0zLjMxIDAtNiAyLjY5LTYgNnMyLjY5IDYgNiA2IDYtMi42OSA2LTYtMi42OS02LTYtNnptMCAxMGMtMi4yMSAwLTQtMS43OS00LTRzMS43OS00IDQtNCA0IDEuNzkgNCA0LTEuNzkgNC00IDR6Ii8+PC9zdmc+'" />
+        <h1>Survival Signals</h1>
+      </div>
+      <div class="navbar-links">
+        <a href="index.html">Home</a>
+        <a href="account.html" class="active">My Account</a>
+      </div>
+    </div>
   </nav>
 
-  <div class="container" id="account-container">
-    <h1>Manage Your Subscription</h1>
-    <!-- 1) Telegram widget area -->
-    <div id="login-widget">
-      <script async src="https://telegram.org/js/telegram-widget.js?15"
-        data-telegram-login="SurvivalSignalsBot"
-        data-size="large"
-        data-userpic="false"
-        data-radius="5"
-        data-request-access="write"
-        data-onauth="onTelegramAuth">
-      </script>
-    </div>
-    <!-- 2) Subscription info area (hidden until we fetch) -->
-    <div id="sub-info" style="display:none;">
-      <p id="sub-status"></p>
-      <p>Next billing: <span id="sub-next"></span></p>
-      <button id="cancelBtn" class="btn">Manage / Cancel Subscription</button>
+  <div class="container">
+    <div class="account-container">
+      <h1>Manage Your Subscription</h1>
+      
+      <!-- 1) Telegram widget area -->
+      <div id="login-widget">
+        <p style="text-align: center; margin-bottom: 20px;">Please log in with your Telegram account to manage your subscription</p>
+        <div class="telegram-login">
+          <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                  data-telegram-login="SurvivalSignalsBot" 
+                  data-size="large" 
+                  data-onauth="onTelegramAuth(user)" 
+                  data-request-access="write"></script>
+        </div>
+      </div>
+      
+      <!-- 2) Loading state -->
+      <div id="loading-state" style="display:none; text-align: center; padding: 30px 0;">
+        <p><span class="loading"></span> Loading your subscription details...</p>
+      </div>
+      
+      <!-- 3) Error state -->
+      <div id="error-state" style="display:none; text-align: center;">
+        <div class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="error-message">Unable to load subscription details. Please try again later.</span>
+        </div>
+        <button id="retryBtn" class="btn">Retry</button>
+      </div>
+      
+      <!-- 4) No subscription state -->
+      <div id="no-subscription" style="display:none; text-align: center;">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i>
+          You don't have an active subscription.
+        </div>
+        <p style="margin: 20px 0;">Get access to premium trading signals and survive the market apocalypse!</p>
+        <a href="index.html" class="btn">Subscribe Now</a>
+      </div>
+      
+      <!-- 5) Subscription info area -->
+      <div id="subscription-info" style="display:none;">
+        <div class="subscription-card">
+          <div class="subscription-header">
+            <h3 class="subscription-title">Survival Signals Premium</h3>
+            <span id="status-badge" class="status-badge status-active">Active</span>
+          </div>
+          
+          <div class="subscription-details">
+            <div class="subscription-detail">
+              <span class="detail-label">Status:</span>
+              <span id="sub-status" class="detail-value">Active</span>
+            </div>
+            <div class="subscription-detail">
+              <span class="detail-label">Next billing date:</span>
+              <span id="sub-next" class="detail-value">June 20, 2025</span>
+            </div>
+            <div class="subscription-detail">
+              <span class="detail-label">Billing amount:</span>
+              <span id="sub-amount" class="detail-value">$49.99</span>
+            </div>
+            <div class="subscription-detail">
+              <span class="detail-label">Payment method:</span>
+              <span id="sub-payment" class="detail-value">•••• 4242</span>
+            </div>
+          </div>
+          
+          <button id="cancelBtn" class="btn">
+            <i class="fas fa-cog"></i> Manage Subscription
+          </button>
+        </div>
+        
+        <div class="alert alert-warning" style="margin-top: 20px;">
+          <i class="fas fa-exclamation-triangle"></i>
+          You will be redirected to Stripe's secure portal to manage your subscription.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -93,48 +691,137 @@
     }
 
     async function initAccount() {
+      // Hide all states initially
+      document.getElementById('login-widget').style.display = 'none';
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').style.display = 'none';
+      document.getElementById('no-subscription').style.display = 'none';
+      document.getElementById('subscription-info').style.display = 'none';
+      
+      // Get user from localStorage
       const raw = localStorage.getItem('tg_user');
       if (!raw) {
-        // not logged in → show widget only
+        // Not logged in → show widget only
         document.getElementById('login-widget').style.display = 'block';
         return;
       }
+      
+      // Show loading state
+      document.getElementById('loading-state').style.display = 'block';
+      
       const user = JSON.parse(raw);
-      document.getElementById('login-widget').style.display = 'none';
-
-      // fetch subscription details
+      
+      // Fetch subscription details
       try {
         const res = await fetch('https://api.survivalsignals.trade/subscription-details', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ telegram_user_id: user.id })
         });
+        
+        if (!res.ok) {
+          throw new Error(`Server responded with status: ${res.status}`);
+        }
+        
         const info = await res.json();
+        
+        // Hide loading state
+        document.getElementById('loading-state').style.display = 'none';
+        
         if (!info.subscribed) {
-          document.getElementById('sub-status').textContent = 'You are not currently subscribed.';
+          // Show no subscription state
+          document.getElementById('no-subscription').style.display = 'block';
         } else {
-          document.getElementById('sub-status').textContent =
-            `Subscribed to Survival Signals — status: ${info.status.toUpperCase()}`;
+          // Update subscription info
+          document.getElementById('sub-status').textContent = info.status.charAt(0).toUpperCase() + info.status.slice(1);
+          
+          // Update status badge
+          const statusBadge = document.getElementById('status-badge');
+          statusBadge.className = 'status-badge';
+          statusBadge.classList.add(`status-${info.status.toLowerCase()}`);
+          statusBadge.textContent = info.status.toUpperCase();
+          
+          // Format and display next billing date
           const date = new Date(info.current_period_end * 1000);
-          document.getElementById('sub-next').textContent = date.toLocaleString();
-          // show manage button
-          document.getElementById('cancelBtn').style.display = 'inline-block';
+          document.getElementById('sub-next').textContent = date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+          
+          // Set billing amount if available
+          if (info.amount) {
+            document.getElementById('sub-amount').textContent = `$${(info.amount / 100).toFixed(2)}`;
+          } else {
+            document.getElementById('sub-amount').textContent = 'N/A';
+          }
+          
+          // Set payment method if available
+          if (info.payment_method && info.payment_method.last4) {
+            document.getElementById('sub-payment').textContent = `•••• ${info.payment_method.last4}`;
+          } else {
+            document.getElementById('sub-payment').textContent = 'N/A';
+          }
+          
+          // Show subscription info
+          document.getElementById('subscription-info').style.display = 'block';
+          
+          // Add event listener to cancel button
           document.getElementById('cancelBtn').addEventListener('click', async () => {
-            // open portal using same endpoint you already built
-            const portal = await fetch('https://api.survivalsignals.trade/create-portal-session', {
-              method:'POST',
-              headers:{'Content-Type':'application/json'},
-              body: JSON.stringify({ telegram_user_id: user.id })
-            }).then(r=>r.json());
-            window.location.href = portal.url;
+            try {
+              // Show loading state on button
+              const cancelBtn = document.getElementById('cancelBtn');
+              const originalText = cancelBtn.innerHTML;
+              cancelBtn.innerHTML = '<span class="loading"></span> Loading...';
+              cancelBtn.disabled = true;
+              
+              // Create portal session
+              const portal = await fetch('https://api.survivalsignals.trade/create-portal-session', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ telegram_user_id: user.id })
+              });
+              
+              if (!portal.ok) {
+                throw new Error(`Server responded with status: ${portal.status}`);
+              }
+              
+              const portalData = await portal.json();
+              
+              // Redirect to Stripe portal
+              window.location.href = portalData.url;
+            } catch (err) {
+              console.error('Error creating portal session', err);
+              
+              // Reset button
+              cancelBtn.innerHTML = originalText;
+              cancelBtn.disabled = false;
+              
+              // Show error
+              document.getElementById('error-message').textContent = 'Unable to open subscription management portal. Please try again later.';
+              document.getElementById('subscription-info').style.display = 'none';
+              document.getElementById('error-state').style.display = 'block';
+            }
           });
         }
       } catch (err) {
         console.error('Error fetching subscription details', err);
+        
+        // Hide loading state
+        document.getElementById('loading-state').style.display = 'none';
+        
+        // Show error state
+        document.getElementById('error-message').textContent = 'Unable to load subscription details. Please try again later.';
+        document.getElementById('error-state').style.display = 'block';
+        
+        // Add event listener to retry button
+        document.getElementById('retryBtn').addEventListener('click', () => {
+          initAccount();
+        });
       }
-      document.getElementById('sub-info').style.display = 'block';
     }
 
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', initAccount);
   </script>
 </body>
