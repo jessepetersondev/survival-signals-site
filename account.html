@@ -711,43 +711,85 @@
       
       const user = JSON.parse(raw);
       
+      // Ensure we have a valid user ID
+      if (!user || !user.id) {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-message').textContent = 'Invalid user data. Please log in again.';
+        document.getElementById('error-state').style.display = 'block';
+        return;
+      }
+      
       // Fetch subscription details
       try {
-        const res = await fetch('https://api.survivalsignals.trade/subscription-details', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ telegram_user_id: user.id })
-        });
-        
-        if (!res.ok) {
-          throw new Error(`Server responded with status: ${res.status}`);
+        // Use a try-catch block specifically for the fetch operation
+        let res;
+        try {
+          res = await fetch('https://api.survivalsignals.trade/subscription-details', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+              telegram_id: user.id, // Try both formats to ensure compatibility
+              telegram_user_id: user.id 
+            })
+          });
+        } catch (fetchError) {
+          console.error('Network error:', fetchError);
+          throw new Error('Network error. Please check your connection and try again.');
         }
         
-        const info = await res.json();
+        // Handle HTTP error responses
+        if (!res.ok) {
+          // For 500 errors, we'll show a more specific message
+          if (res.status === 500) {
+            throw new Error('Server error. The subscription service is currently unavailable.');
+          } else {
+            throw new Error(`Server responded with status: ${res.status}`);
+          }
+        }
+        
+        // Parse JSON response
+        let info;
+        try {
+          info = await res.json();
+        } catch (jsonError) {
+          console.error('JSON parsing error:', jsonError);
+          throw new Error('Invalid response from server. Please try again later.');
+        }
         
         // Hide loading state
         document.getElementById('loading-state').style.display = 'none';
         
+        // Handle case where info is null or undefined
+        if (!info) {
+          throw new Error('No data received from server. Please try again later.');
+        }
+        
+        // Check if user has a subscription
         if (!info.subscribed) {
           // Show no subscription state
           document.getElementById('no-subscription').style.display = 'block';
         } else {
-          // Update subscription info
-          document.getElementById('sub-status').textContent = info.status.charAt(0).toUpperCase() + info.status.slice(1);
+          // Update subscription info with null checks
+          const status = info.status || 'unknown';
+          document.getElementById('sub-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
           
           // Update status badge
           const statusBadge = document.getElementById('status-badge');
           statusBadge.className = 'status-badge';
-          statusBadge.classList.add(`status-${info.status.toLowerCase()}`);
-          statusBadge.textContent = info.status.toUpperCase();
+          statusBadge.classList.add(`status-${status.toLowerCase()}`);
+          statusBadge.textContent = status.toUpperCase();
           
-          // Format and display next billing date
-          const date = new Date(info.current_period_end * 1000);
-          document.getElementById('sub-next').textContent = date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
+          // Format and display next billing date with null check
+          if (info.current_period_end) {
+            const date = new Date(info.current_period_end * 1000);
+            document.getElementById('sub-next').textContent = date.toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            });
+          } else {
+            document.getElementById('sub-next').textContent = 'N/A';
+          }
           
           // Set billing amount if available
           if (info.amount) {
@@ -776,17 +818,41 @@
               cancelBtn.disabled = true;
               
               // Create portal session
-              const portal = await fetch('https://api.survivalsignals.trade/create-portal-session', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ telegram_user_id: user.id })
-              });
-              
-              if (!portal.ok) {
-                throw new Error(`Server responded with status: ${portal.status}`);
+              let portal;
+              try {
+                portal = await fetch('https://api.survivalsignals.trade/create-portal-session', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({ 
+                    telegram_id: user.id, // Try both formats to ensure compatibility
+                    telegram_user_id: user.id 
+                  })
+                });
+              } catch (fetchError) {
+                console.error('Network error:', fetchError);
+                throw new Error('Network error. Please check your connection and try again.');
               }
               
-              const portalData = await portal.json();
+              if (!portal.ok) {
+                if (portal.status === 500) {
+                  throw new Error('Server error. The portal service is currently unavailable.');
+                } else {
+                  throw new Error(`Server responded with status: ${portal.status}`);
+                }
+              }
+              
+              let portalData;
+              try {
+                portalData = await portal.json();
+              } catch (jsonError) {
+                console.error('JSON parsing error:', jsonError);
+                throw new Error('Invalid response from server. Please try again later.');
+              }
+              
+              // Check if we have a valid URL
+              if (!portalData || !portalData.url) {
+                throw new Error('No portal URL received. Please try again later.');
+              }
               
               // Redirect to Stripe portal
               window.location.href = portalData.url;
@@ -798,7 +864,7 @@
               cancelBtn.disabled = false;
               
               // Show error
-              document.getElementById('error-message').textContent = 'Unable to open subscription management portal. Please try again later.';
+              document.getElementById('error-message').textContent = err.message || 'Unable to open subscription management portal. Please try again later.';
               document.getElementById('subscription-info').style.display = 'none';
               document.getElementById('error-state').style.display = 'block';
             }
@@ -810,8 +876,8 @@
         // Hide loading state
         document.getElementById('loading-state').style.display = 'none';
         
-        // Show error state
-        document.getElementById('error-message').textContent = 'Unable to load subscription details. Please try again later.';
+        // Show error state with specific message
+        document.getElementById('error-message').textContent = err.message || 'Unable to load subscription details. Please try again later.';
         document.getElementById('error-state').style.display = 'block';
         
         // Add event listener to retry button
