@@ -418,6 +418,27 @@
       animation: scroll 20s linear infinite;
       text-shadow: 0 0 5px var(--color-success-glow);
     }
+
+    /* ============================
+   TICKER RESPONSIVE OVERRIDES
+   ============================ */
+    @media (max-width: 768px) {
+      .ticker {
+        position: static !important;    /* switch off absolute bottom */
+        bottom: auto !important;
+        width: auto !important;
+        margin: 20px auto;              /* give it breathing room */
+        padding: 8px 16px;              /* tighten up on mobile */
+        border-top: 1px solid var(--color-danger);
+        overflow: visible;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+      .ticker span {
+        display: block;                 /* stack items if needed */
+        animation: none;                /* stop the scroll on small */
+      }
+    }
     
     @keyframes scroll {
       from { transform: translateX(100%); }
@@ -1044,7 +1065,7 @@
     </div>
     <h1 class="text-glitch" data-text="Survival Signals Bot">Survival Signals Bot</h1>
     <p class="tagline">Your last line of defense in a crumbling market</p>
-    <p>Our AI agent never sleeps — 24/7 it's scanning markets, downloading data, optimizing parameters, backtesting strategies, and deploying only the best signals straight to you!</p>
+    <p>Our AI trader never sleeps — 24/7 it scans markets, downloads data, optimizes, backtests, and deploys the best signals straight to you!</p>
     
     <div class="form-wrapper">
       <h3>Secure Your Survival Now</h3>
@@ -1374,9 +1395,9 @@
         }
       }
 
-      // initial load + repeat every 60 seconds
+      // initial load + repeat every 90 seconds
       fetchTicker();
-      setInterval(fetchTicker, 60000);
+      setInterval(fetchTicker, 90000);
     });
   </script>
 </body>
