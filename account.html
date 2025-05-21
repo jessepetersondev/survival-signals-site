@@ -728,7 +728,6 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ 
-              telegram_id: user.id, // Try both formats to ensure compatibility
               telegram_user_id: user.id 
             })
           });
@@ -792,8 +791,8 @@
           }
           
           // Set billing amount if available
-          if (info.amount) {
-            document.getElementById('sub-amount').textContent = `$${(info.amount / 100).toFixed(2)}`;
+          if (info.price) {
+            document.getElementById('sub-amount').textContent = `$${(parseFloat(info.price) / 100).toFixed(2)}`;
           } else {
             document.getElementById('sub-amount').textContent = 'N/A';
           }
@@ -824,7 +823,6 @@
                   method: 'POST',
                   headers: {'Content-Type': 'application/json'},
                   body: JSON.stringify({ 
-                    telegram_id: user.id, // Try both formats to ensure compatibility
                     telegram_user_id: user.id 
                   })
                 });
