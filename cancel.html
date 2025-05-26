@@ -4,6 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subscription Cancelled - Survival Signals Bot</title>
+
+  <!-- 1. Security: Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          script-src 'self' https://js.stripe.com https://telegram.org https://cdnjs.cloudflare.com;
+          style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+          font-src 'self' https://fonts.gstatic.com;
+          img-src 'self' data:;
+          connect-src 'self' https://api.survivalsignals.trade https://rest.coincap.io;
+        ">
+
+  <!-- 2. SEO: Basic meta tags -->
+  <meta name="description"
+        content="Survival Signals Bot provides AI-powered crypto trading signals via Telegram to help you navigate volatile markets and maximize profits.">
+  <meta name="keywords"
+        content="cryptocurrency, trading signals, crypto bot, telegram signals, AI trading">
+        
   <style>
     /* Base styling from index.html */
     body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f1; color: #333; }
