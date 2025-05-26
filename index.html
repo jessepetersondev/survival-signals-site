@@ -7,14 +7,36 @@
   
   <!-- 1. Security: Content Security Policy -->
   <meta http-equiv="Content-Security-Policy"
-        content="
-          default-src 'self';
-          script-src 'self' https://js.stripe.com https://telegram.org https://cdnjs.cloudflare.com;
-          style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;
-          font-src 'self' https://fonts.gstatic.com;
-          img-src 'self' data:;
-          connect-src 'self' https://api.survivalsignals.trade https://rest.coincap.io;
-        ">
+      content="
+        default-src 'self';
+        script-src  
+          'self'
+          https://js.stripe.com
+          https://telegram.org
+          https://cdnjs.cloudflare.com
+          https://cdn.jsdelivr.net
+          'unsafe-inline'
+          'unsafe-eval';
+        style-src  
+          'self'
+          'unsafe-inline'
+          https://cdnjs.cloudflare.com
+          https://fonts.googleapis.com;
+        font-src  
+          'self'
+          https://fonts.gstatic.com;
+        img-src  
+          'self'
+          data:;
+        connect-src  
+          'self'
+          https://api.survivalsignals.trade
+          https://rest.coincap.io
+          wss://wss.coincap.io;
+        frame-src  
+          https://js.stripe.com
+      ">
+
 
   <!-- 2. SEO: Basic meta tags -->
   <meta name="description"
@@ -261,7 +283,6 @@
     /* Header and Hero Section */
     header {
       position: relative;
-      background: url('dystopian-bg.png') no-repeat center/cover;
       min-height: 100vh;
       text-align: center;
       padding: 0 20px;
@@ -940,9 +961,6 @@
     .cta {
       text-align: center;
       padding: 120px 20px;
-      background: 
-        linear-gradient(rgba(10, 5, 5, 0.8), rgba(10, 5, 5, 0.8)),
-        url('dystopian-bg.png') no-repeat center/cover;
       position: relative;
     }
     
